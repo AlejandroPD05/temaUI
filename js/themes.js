@@ -114,14 +114,49 @@
     return storageGet(MANUAL_KEY) === '1';
   }
 
+  /* --- Congelado de la paleta durante la captura ------------------------- */
+
+  /**
+   * Clase que apaga los `transition` de color de la paleta en `layout.css`.
+   *
+   * Hace falta porque View Transitions captura el estado nuevo AL SIGUIENTE
+   * FOTOGRAMA de la callback. Si en ese instante la paleta está todavía
+   * interpolando (260 ms), el snapshot "nuevo" se pinta con los colores
+   * VIEJOS: el fundido compara un snapshot con otro idéntico, no se ve nada
+   * durante 260 ms y, cuando el snapshot desaparece, el color nuevo aparece
+   * de golpe. Medido en el navegador original: `body` seguía en
+   * `rgb(245,246,248)` —el blanco viejo— a los 25 ms de aplicar el tema.
+   *
+   * Con la clase puesta, la paleta salta dentro de la callback, el snapshot
+   * nuevo ya lleva los colores finales y el fundido viejo→nuevo sí se ve.
+   *
+   * `vtDepth` es un contador, no un booleano: lanzar una segunda View
+   * Transition aborta a la primera, que entonces rechaza. Si al rechazar
+   * soltáramos la clase, la segunda capturaría con los colores a medio
+   * camino. Sólo al llegar a 0 se restaura.
+   */
+  var VT_PALETTE_CLASS = 'theme-vt';
+  var vtDepth = 0;
+
+  function lockPalette() {
+    vtDepth += 1;
+    document.documentElement.classList.add(VT_PALETTE_CLASS);
+  }
+
+  function unlockPalette() {
+    vtDepth = Math.max(0, vtDepth - 1);
+    if (vtDepth === 0) document.documentElement.classList.remove(VT_PALETTE_CLASS);
+  }
+
   /**
    * Transición de cambio sin parpadeo.
    *
    * `startViewTransition` captura la interfaz antes/después y funde la paleta
    * con la duración que `base.css` ya declara para `::view-transition-old/new`
    * (`--t-med`). Si el navegador no lo tiene, si el usuario pide movimiento
-   * reducido o si la transición lanza, se aplica el cambio directamente:
-   * el tema TIENE que cambiarse pase lo que pase.
+   * reducido o si la transición lanza, se aplica el cambio directamente y el
+   * fundido lo hacen los `transition` de `layout.css`: el tema TIENE que
+   * cambiarse pase lo que pase, pero nunca dejando la paleta congelada.
    *
    * El guard `applied` evita una doble mutación por si una implementación
    * rota lanzara DESPUÉS de invocarnos (setAttribute es idempotente, pero
@@ -145,16 +180,33 @@
       return;
     }
 
+    lockPalette();
+
+    var released = false;
+    function unlock() {
+      if (released) return;
+      released = true;
+      unlockPalette();
+    }
+
     try {
       var transition = document.startViewTransition(apply);
+
       // Un rechazo (p. ej. otra transición en curso) no debe dejar un error
-      // sin capturar en consola: la mutación ya se habrá ejecutado.
-      if (transition && typeof transition.catch === 'function') {
-        transition.catch(function () {
-          /* Transición abortada por una nueva: el tema ya está aplicado. */
-        });
+      // sin capturar en consola, NI la paleta bloqueada: la mutación ya se
+      // habrá ejecutado y hay que soltarla también cuando se aborta.
+      if (transition && transition.finished && typeof transition.finished.then === 'function') {
+        transition.finished.then(unlock, unlock);
+      } else if (transition && typeof transition.catch === 'function') {
+        transition.catch(unlock);
       }
+
+      // Red de seguridad: si `finished` nunca se resuelve, la paleta no puede
+      // quedarse bloqueada —el siguiente cambio se vería instantáneo incluso
+      // donde tocaría animar—. Diez veces la duración declarada en CSS.
+      global.setTimeout(unlock, 2600);
     } catch (err) {
+      unlock();
       apply();
     }
   }

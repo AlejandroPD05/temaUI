@@ -224,9 +224,18 @@ input[type='search']::-webkit-search-cancel-button {
 }
 
 /* --- Transición de tema -------------------------------------------------
-   Se anima SOLO la paleta. Pintar posición o tamaño con View Transitions
-   obligaría a rasterizar el vídeo entero en cada cambio y se nota como
-   un tirón; color, en cambio, va a 260 ms sin coste. */
+   Sólo se funde la paleta: animar posición o tamaño obligaría a rasterizar
+   el vídeo entero en cada cambio y se nota como un tirón.
+
+   El coste, sin embargo, NO es cero: el navegador hace DOS capturas de
+   página completa (antes y después) y las cruza. Esa rasterización corre en
+   GPU, así que con la aceleración por hardware desactivada cae al hilo de
+   software y se nota en los cuadros. Es la razón por la que este cambio es
+   el sitio donde más se nota tenerla apagada.
+
+   La paleta se aplica de golpe dentro de la callback (clase `theme-vt`, la
+   pone themes.js); si se interpolara dentro, el snapshot nuevo se capturaría
+   con los colores viejos y el fundido no se vería. */
 
 ::view-transition-old(root),
 ::view-transition-new(root) {

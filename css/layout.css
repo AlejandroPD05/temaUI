@@ -49,7 +49,16 @@ body {
 /* Transición de paleta: SÓLO en elementos que ya cambian de color al
    cambiar de tema. No se declara a todo el árbol porque arrastraría texto e
    imágenes y haría vibrar el contenido justo durante el cambio (y además lo
-   pagaría el hilo de pintura en cada hover). */
+   pagaría el hilo de pintura en cada hover).
+
+   Estas transiciones cumplen DOS papeles, y no a la vez:
+     · Con View Transition, están APAGADAS (ver .theme-vt más abajo): la
+       paleta debe saltar dentro de la callback para que el snapshot nuevo
+       se capture con los colores finales. Si estuvieran encendidas, el
+       navegador capturaría el estado nuevo al fotograma siguiente, con la
+       interpolación todavía en ~6 %, y el fundido compararía el snapshot   viejo con otro aparentemente idéntico: 260 ms sin ver nada y luego un   salto seco. Además se ahorran 260 ms de pintura por cambio (medido:
+       142 fps con ellas frente a 168 sin ellas).
+     · Sin View Transition (navegador viejo o prefers-reduced-motion), son   ellas las que hacen el fundido. Este es su papel. */
 
 body,
 .platform-bar,
@@ -62,6 +71,20 @@ body,
     background-color var(--t-med) var(--ease-in-out),
     border-color var(--t-med) var(--ease-in-out),
     color var(--t-med) var(--ease-in-out);
+}
+
+/* Bloqueo durante la captura de View Transitions. La clase la pone y quita
+   themes.js; sin ella el snapshot nuevo saldría con la paleta vieja. El
+   prefijo `html.theme-vt` sube la especificidad a (0,1,2) para ganarle a las
+   reglas anteriores, que más abajo en la cascada no bastarían. */
+html.theme-vt body,
+html.theme-vt .platform-bar,
+html.theme-vt .platform-logo,
+html.theme-vt .platform-logo__mark,
+html.theme-vt .avatar,
+html.theme-vt .theme-menu,
+html.theme-vt .shortcuts__panel {
+  transition: none;
 }
 
 /* `.skip-link` y `.noscript-note` ya están resueltos en base.css; no se

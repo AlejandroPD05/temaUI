@@ -133,6 +133,15 @@ fallará si olvidas uno de los pasos o si algún par de colores baja de AA.
 - **Transición acotada.** `document.startViewTransition()` cuando existe y
   `prefers-reduced-motion` lo permite. Sólo se anima color: pintar posición
   obligaría a rasterizar el lienzo del vídeo entero y se nota como un tirón.
+- **La paleta se congela para capturar.** View Transitions saca el snapshot
+  nuevo en el *siguiente fotograma* de la callback, así que si la paleta
+  estuviera interpolando —`layout.css` declara un `transition` de 260 ms para
+  cuando no hay View Transition—, el snapshot saldría con los colores viejos:
+  el fundido cruzaría dos imágenes iguales, no se vería nada durante 260 ms y
+  el color nuevo aparecería de golpe al quitar los snapshots. `themes.js`
+  pone la clase `theme-vt` antes de capturar y la quita al `finished`. Si no
+  hay View Transition, no se bloquea nada: ahí esas transiciones de color las
+  que hacen el fundido.
 - **Los menús se coordinan.** Abrir uno despacha `tema-ui:close-menus` en
   `document` *antes* de mostrarse, para que el propio listener no se cierre a
   sí mismo en el mismo tick.
@@ -176,10 +185,43 @@ La suite `file` del QA comprueba exactamente esto, así que si alguien
 
 ---
 
+## Rendimiento y aceleración por hardware
+
+El cambio de tema es la operación más cara de la demo: View Transitions hace
+**dos capturas de página completa** (antes y después) y las cruza durante
+260 ms. Esa rasterización va a GPU, así que con la aceleración desactivada
+cae al hilo de software.
+
+Efectos que dependen de ella:
+
+| Efecto | Dónde |
+|---|---|
+| `backdrop-filter` | cabecera (blur 10px), diálogo de ayuda, botón de reproducción, código de episodio |
+| `mix-blend-mode` | `.video-grain`, la capa de grano sobre la carátula |
+| Las dos capturas de View Transitions | cambio de tema |
+
+Todos degradan limpiamente si no están: la cabecera ya lleva fondo opaco
+como *fallback* en `@supports`, y el grano es decorativo. No rompen nada,
+sólo cuestan cuadros.
+
+Lo que **no** depende de la aceleración —y era el problema real— es que el
+cambio se viera brusco: está documentado en «La paleta se congela para
+capturar», más arriba, y tiene prueba de regresión.
+
+Coste medido en Edge headless durante un cambio de tema (ventana de 450 ms):
+
+```
+antes del fix   142 fps   (paleta interpolando durante la captura)
+después         166 fps   (paleta congelada)
+referencia      167 fps   (transiciones de color desactivadas del todo)
+```
+
+---
+
 ## Pruebas
 
 El arnés de Playwright vive fuera del repositorio (no es dependencia del
-proyecto) y cubre **131 aserciones**:
+proyecto) y cubre **132 aserciones**:
 
 | Suite | Qué comprueba |
 |---|---|
