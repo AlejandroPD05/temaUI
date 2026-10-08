@@ -1,0 +1,283 @@
+/* ==========================================================================
+   base.css — reinicio, escala de diseño, tipografía y accesibilidad.
+
+   Orden de carga (index.html):
+     1. base.css    reglas globales y utilidades
+     2. themes.css  define los colores de cada data-theme
+     3. layout.css  cabecera y rejilla
+     4. player.css  reproductor, lista y menús
+
+   Los colores NO se declaran aquí: viven en themes.css atados a
+   [data-theme]. Así, crear un tema nuevo es añadir un bloque, sin tocar
+   una sola regla de composición.
+   ========================================================================== */
+
+/* --- Escala de diseño (común a todos los temas) -------------------------- */
+
+:root {
+  /* Tipografía. Escala contenida: es una app, no un documento. */
+  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  --font-mono: 'Cascadia Mono', 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+
+  --fs-xs: 0.6875rem;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.9375rem;
+  --fs-lg: 1.0625rem;
+  --fs-xl: clamp(1.15rem, 1.02rem + 0.55vw, 1.4rem);
+  --fs-2xl: clamp(1.4rem, 1.1rem + 1.4vw, 2.1rem);
+
+  --lh-tight: 1.2;
+  --lh-snug: 1.4;
+  --lh-normal: 1.6;
+
+  /* Espaciado en múltiplos de 4: cualquier suma cuadra sin cálculos. */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.25rem;
+  --sp-6: 1.5rem;
+  --sp-7: 2rem;
+  --sp-8: 2.5rem;
+  --sp-9: 3.5rem;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 999px;
+
+  /* Duraciones cortas en botones, largas en superficies: el dedo espera
+     respuesta inmediata, el ojo admite que un panel se deslice. */
+  --t-fast: 130ms;
+  --t-med: 260ms;
+  --t-slow: 460ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --header-h: 62px;
+  --layout-max: 1280px;
+  --shadow-1: 0 1px 2px rgba(15, 20, 30, 0.06), 0 1px 1px rgba(15, 20, 30, 0.04);
+  --shadow-2: 0 6px 18px -8px rgba(15, 20, 30, 0.18), 0 2px 6px -4px rgba(15, 20, 30, 0.12);
+  --shadow-3: 0 24px 50px -24px rgba(15, 20, 30, 0.4);
+}
+
+/* --- Reinicio ----------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-md);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+dl,
+dd {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+}
+
+a {
+  color: inherit;
+}
+
+/* Quita el relleno nativo del buscador en WebKit (la X se come espacio). */
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* --- Utilidades --------------------------------------------------------- */
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: var(--sp-2);
+  left: var(--sp-2);
+  z-index: 200;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform var(--t-fast) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.noscript-note {
+  max-width: 42rem;
+  margin: var(--sp-7) auto;
+  padding: var(--sp-4) var(--sp-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+
+/* --- Foco visible -------------------------------------------------------
+   En Opera/Firefox `outline` por defecto choca con las esquinas
+   redondeadas; se redeclara en cada control en player.css / layout.css.
+   Aquí queda el respaldo global para lo que no tenga regla propia. */
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+/* --- Barra de desplazamiento acorde al tema ----------------------------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: var(--r-full);
+  background: var(--border-strong);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  background-clip: content-box;
+}
+
+/* --- Transición de tema -------------------------------------------------
+   Se anima SOLO la paleta. Pintar posición o tamaño con View Transitions
+   obligaría a rasterizar el vídeo entero en cada cambio y se nota como
+   un tirón; color, en cambio, va a 260 ms sin coste. */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--t-med);
+  animation-timing-function: var(--ease-in-out);
+}
+
+/* --- Movimiento reducido ------------------------------------------------
+   El sistema pide calma: se apagan los desplazamientos suaves, los
+   fundidos de tema y las animaciones decorativas, pero NUNCA se oculta
+   contenido ni se desactiva la interfaz. */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* --- Impresión ----------------------------------------------------------
+   Un vistazo al estado del reproductor sin la interfaz de la app. */
+
+@media print {
+  .platform-bar,
+  .player-controls,
+  .shortcuts,
+  .up-next,
+  .skip-link {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .player-layout {
+    display: block;
+    padding: 0;
+  }
+}

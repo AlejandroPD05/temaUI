@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="claro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StreamBox — Reproductor con cambio de tema · tema-ui</title>
+<meta name="description" content="Demo de interfaz de reproductor con un motor de temas completo: varios temas, selector con muestras, persistencia, preferencia del sistema y transiciones suaves. Sin dependencias.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" id="metaThemeColor" content="#F5F6F8">
+<meta name="author" content="Alejandro Prieto Díez">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="StreamBox — Reproductor con cambio de tema">
+<meta property="og:description" content="Demo de interfaz con motor de temas: varios temas, selector visual, persistencia y transiciones. Sin dependencias.">
+<meta property="og:locale" content="es_ES">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/player.css">
+
+<script>
+/**
+ * Aplica el tema ANS de pintar nada.
+ *
+ * Sin este bloque, quien tenga guardado un tema oscuro vería un destello
+ * claro al abrir. Se ejecuta síncrona y en línea a propósito: cualquier
+ * script diferido vuelve a dejar ese parpadeo.
+ *
+ * Debe leer exactamente la misma lista que `js/themes.js`; se mantiene
+ * duplicada a conciencia porque no se puede importar sin módulos ES.
+ */
+(function () {
+  var THEMES = ['claro', 'verde-oscuro', 'medianoche', 'arena', 'alto-contraste'];
+  var DARK_FALLBACK = 'medianoche';
+  var saved = null;
+
+  try {
+    saved = window.localStorage.getItem('tema-ui:theme');
+  } catch (err) {
+    /* Almacenamiento bloqueado (modo privado): seguimos con la preferencia. */
+  }
+
+  var chosen = saved && THEMES.indexOf(saved) !== -1 ? saved : null;
+
+  if (!chosen) {
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    chosen = prefersDark ? DARK_FALLBACK : 'claro';
+  }
+
+  document.documentElement.setAttribute('data-theme', chosen);
+})();
+</script>
+</head>
+
+<body>
+
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<header class="platform-bar">
+  <a class="platform-logo" href="#" aria-label="StreamBox, inicio">
+    <span class="platform-logo__mark" aria-hidden="true">▶</span>
+    <span class="platform-logo__text">StreamBox</span>
+  </a>
+
+  <form class="platform-search" role="search" id="searchForm" autocomplete="off">
+    <svg class="platform-search__icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"></circle>
+      <path d="m20 20-3.5-3.5"></path>
+    </svg>
+    <label class="visually-hidden" for="searchInput">Buscar series, episodios o descripciones</label>
+    <input type="search" id="searchInput" class="platform-search__input"
+           placeholder="Buscar series, episodios…"
+           aria-controls="upNextList" aria-describedby="searchStatus">
+    <kbd class="platform-search__kbd" aria-hidden="true">/</kbd>
+  </form>
+
+  <div class="platform-actions">
+
+    <!-- Selector de temas: el motivo de nombre del proyecto. -->
+    <div class="theme-picker">
+      <button type="button" class="theme-btn" id="themeToggle"
+              aria-haspopup="menu" aria-expanded="false" aria-controls="themeMenu">
+        <span class="theme-btn__swatch" id="themeBtnSwatch" aria-hidden="true"></span>
+        <span class="theme-btn__label" id="themeBtnLabel">Tema</span>
+        <svg class="theme-btn__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+      </button>
+
+      <div class="theme-menu" id="themeMenu" role="menu" aria-labelledby="themeToggle" hidden>
+        <p class="theme-menu__head" id="themeMenuHead">Tema de la interfaz</p>
+
+        <button type="button" class="theme-option" role="menuitemradio" data-theme-id="claro" aria-checked="false">
+          <span class="theme-swatch" data-swatch="claro" aria-hidden="true"></span>
+          <span class="theme-option__text">
+            <span class="theme-option__name">Claro</span>
+            <span class="theme-option__mode">Fondo claro · acento azul</span>
+          </span>
+          <svg class="theme-option__check" width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+               aria-hidden="true"><path d="m5 13 4 4L19 7"></path></svg>
+        </button>
+
+        <button type="button" class="theme-option" role="menuitemradio" data-theme-id="verde-oscuro" aria-checked="false">
+          <span class="theme-swatch" data-swatch="verde-oscuro" aria-hidden="true"></span>
+          <span class="theme-option__text">
+            <span class="theme-option__name">Verde oscuro</span>
+            <span class="theme-option__mode">Oscuro · acento verde</span>
+          </span>
+          <svg class="theme-option__check" width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+               aria-hidden="true"><path d="m5 13 4 4L19 7"></path></svg>
+        </button>
+
+        <button type="button" class="theme-option" role="menuitemradio" data-theme-id="medianoche" aria-checked="false">
+          <span class="theme-swatch" data-swatch="medianoche" aria-hidden="true"></span>
+          <span class="theme-option__text">
+            <span class="theme-option__name">Medianoche</span>
+            <span class="theme-option__mode">Oscuro · acento índigo</span>
+          </span>
+          <svg class="theme-option__check" width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+               aria-hidden="true"><path d="m5 13 4 4L19 7"></path></svg>
+        </button>
+
+        <button type="button" class="theme-option" role="menuitemradio" data-theme-id="arena" aria-checked="false">
+          <span class="theme-swatch" data-swatch="arena" aria-hidden="true"></span>
+          <span class="theme-option__text">
+            <span class="theme-option__name">Arena</span>
+            <span class="theme-option__mode">Claro cálido · acento terracota</span>
+          </span>
+          <svg class="theme-option__check" width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+               aria-hidden="true"><path d="m5 13 4 4L19 7"></path></svg>
+        </button>
+
+        <button type="button" class="theme-option" role="menuitemradio" data-theme-id="alto-contraste" aria-checked="false">
+          <span class="theme-swatch" data-swatch="alto-contraste" aria-hidden="true"></span>
+          <span class="theme-option__text">
+            <span class="theme-option__name">Alto contraste</span>
+            <span class="theme-option__mode">Oscuro · amarillo AAA</span>
+          </span>
+          <svg class="theme-option__check" width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+               aria-hidden="true"><path d="m5 13 4 4L19 7"></path></svg>
+        </button>
+
+        <p class="theme-menu__foot">Se guarda en este navegador. <kbd>Esc</kbd> para cerrar.</p>
+      </div>
+    </div>
+
+    <button type="button" class="icon-btn" id="shortcutsBtn" aria-haspopup="dialog" aria-expanded="false"
+            aria-controls="shortcutsOverlay" title="Atajos de teclado">
+      <span class="visually-hidden">Ver atajos de teclado</span>
+      <kbd class="icon-btn__glyph" aria-hidden="true">?</kbd>
+    </button>
+
+    <span class="avatar" title="Alejandro">A<span class="visually-hidden">, perfil de Alejandro</span></span>
+  </div>
+</header>
+
+<main id="main" class="player-layout">
+
+  <!-- ============ Reproductor ============ -->
+  <section class="player-column" aria-labelledby="nowPlayingTitle">
+
+    <div class="video-frame" id="videoFrame">
+      <div class="video-canvas" id="videoCanvas">
+
+        <!-- Carátula procedural: gradiente derivado del matiz del episodio. -->
+        <div class="video-art" id="videoArt" aria-hidden="true">
+          <span class="video-art__ring video-art__ring--1"></span>
+          <span class="video-art__ring video-art__ring--2"></span>
+          <span class="video-art__glow"></span>
+        </div>
+        <div class="video-grain" aria-hidden="true"></div>
+
+        <p class="video-code" id="videoCode" aria-hidden="true">T2 E4</p>
+
+        <button type="button" class="play-overlay" id="playOverlay" aria-label="Reproducir episodio">
+          <svg class="icon-play" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M8 5v14l11-7z"></path>
+          </svg>
+          <svg class="icon-pause" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M7 5h4v14H7zM13 5h4v14h-4z"></path>
+          </svg>
+        </button>
+
+        <p class="video-captions" id="videoCaptions" aria-live="polite" hidden>
+          — Llegamos antes de que baje el sol.
+        </p>
+
+        <div class="video-badges" aria-hidden="true">
+          <span class="video-badge" id="videoTag">Documental</span>
+          <span class="video-badge video-badge--muted">HD</span>
+        </div>
+      </div>
+
+      <div class="player-controls">
+
+        <!-- Barra de progreso: <input type="range"> real, así que trae
+             foco, flechas y semántica de slider sin reimplementar nada. -->
+        <div class="progress" id="progress">
+          <div class="progress__track" aria-hidden="true">
+            <div class="progress__buffered" id="progressBuffered"></div>
+            <div class="progress__played" id="progressPlayed"></div>
+          </div>
+          <input class="progress__input" id="progressInput" type="range"
+                 min="0" max="2530" step="1" value="872"
+                 aria-label="Progreso de reproducción"
+                 aria-valuetext="14:32 de 42:10">
+          <output class="progress__tooltip" id="seekTooltip" for="progressInput" hidden></output>
+        </div>
+
+        <div class="controls-row">
+
+          <div class="controls-left">
+
+            <button type="button" class="ctrl-btn ctrl-btn--play" id="playBtn" aria-pressed="false"
+                    aria-label="Reproducir">
+              <svg class="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                   aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+              <svg class="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                   aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"></path></svg>
+            </button>
+
+            <button type="button" class="ctrl-btn" id="muteBtn" aria-pressed="false" aria-label="Silenciar">
+              <svg class="icon-vol-high" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                   aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9H4z"></path><path d="M16.5 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+              <svg class="icon-vol-low" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                   aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9H4z"></path></svg>
+              <svg class="icon-vol-mute" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                   aria-hidden="true"><path d="M4 9v6h4l5 5V4L8 9H4z"></path><path d="m16 9 5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+            </button>
+
+            <div class="volume">
+              <input class="volume__input" id="volumeInput" type="range"
+                     min="0" max="100" step="1" value="70"
+                     aria-label="Volumen" aria-valuetext="70 por ciento">
+            </div>
+
+            <p class="time-display" id="timeDisplay">
+              <span class="time-display__current" id="timeCurrent">14:32</span>
+              <span class="time-display__sep" aria-hidden="true">/</span>
+              <span class="time-display__total" id="timeTotal">42:10</span>
+            </p>
+
+            <p class="rate-chip" id="rateChip" hidden>1×</p>
+          </div>
+
+          <div class="controls-right">
+
+            <button type="button" class="ctrl-btn ctrl-btn--text" id="ccBtn" aria-pressed="false"
+                    aria-label="Subtítulos">CC</button>
+
+            <div class="settings">
+              <button type="button" class="ctrl-btn" id="settingsBtn"
+                      aria-haspopup="menu" aria-expanded="false" aria-controls="settingsMenu"
+                      aria-label="Ajustes de reproducción">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7zm7.4-3a7.4 7.4 0 0 0-.15-1.5l2-1.55-2-3.46-2.38.96a7.5 7.5 0 0 0-2.6-1.5L13.9 2h-4l-.37 2.45a7.5 7.5 0 0 0-2.6 1.5l-2.38-.96-2 3.46 2 1.55A7.4 7.4 0 0 0 4.4 12.5a7.4 7.4 0 0 0 .15 1.5l-2 1.55 2 3.46 2.38-.96a7.5 7.5 0 0 0 2.6 1.5L9.9 22h4l.37-2.45a7.5 7.5 0 0 0 2.6-1.5l2.38.96 2-3.46-2-1.55c.1-.49.15-.99.15-1.5z"></path>
+                </svg>
+              </button>
+
+              <div class="settings-menu" id="settingsMenu" role="menu" aria-labelledby="settingsBtn" hidden>
+                <p class="settings-menu__head" id="rateHead">Velocidad</p>
+                <div role="group" aria-labelledby="rateHead">
+                  <button type="button" class="settings-menu__item" role="menuitemradio" data-rate="0.5" aria-checked="false">0,5×</button>
+                  <button type="button" class="settings-menu__item" role="menuitemradio" data-rate="1" aria-checked="true">Normal</button>
+                  <button type="button" class="settings-menu__item" role="menuitemradio" data-rate="1.25" aria-checked="false">1,25×</button>
+                  <button type="button" class="settings-menu__item" role="menuitemradio" data-rate="1.5" aria-checked="false">1,5×</button>
+                  <button type="button" class="settings-menu__item" role="menuitemradio" data-rate="2" aria-checked="false">2×</button>
+                </div>
+                <p class="settings-menu__head" id="qualityHead">Calidad</p>
+                <div role="group" aria-labelledby="qualityHead">
+                  <button type="button" class="settings-menu__item" role="menuitemradio" data-quality="auto" aria-checked="true">Automática</button>
+                  <button type="button" class="settings-menu__item" role="menuitemradio" data-quality="1080" aria-checked="false">1080p</button>
+                  <button type="button" class="settings-menu__item" role="menuitemradio" data-quality="720" aria-checked="false">720p</button>
+                  <button type="button" class="settings-menu__item" role="menuitemradio" data-quality="480" aria-checked="false">480p</button>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="ctrl-btn" id="fsBtn" aria-label="Pantalla completa">
+              <svg class="icon-fs-enter" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M4 9V4h5v2H6v3H4zm11-5h5v5h-2V6h-3V4zM4 15h2v3h3v2H4v-5zm14 3v-3h2v5h-5v-2h3z"></path>
+              </svg>
+              <svg class="icon-fs-exit" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M9 4h2v5H6V7h3V4zm4 0h2v3h3v2h-5V4zM6 15h5v5H9v-3H6v-2zm7 0h5v2h-3v3h-2v-5z"></path>
+              </svg>
+            </button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="video-meta">
+      <p class="video-meta__crumbs">
+        <span id="metaSeries">Rutas del Sur</span>
+        <span class="video-meta__dot" aria-hidden="true">·</span>
+        <span id="metaSeason">Temporada 2</span>
+      </p>
+      <h1 class="video-meta__title" id="nowPlayingTitle">Rutas del Sur — T2 E4</h1>
+      <p class="video-meta__desc" id="metaDesc">
+        Un recorrido por los caminos menos transitados, con paradas en pueblos que el mapa casi olvida.
+      </p>
+      <ul class="video-meta__stats" aria-label="Datos del episodio">
+        <li><span class="stat__value" id="statDuration">42:10</span><span class="stat__label">duración</span></li>
+        <li><span class="stat__value" id="statRemaining">27:38</span><span class="stat__label">restante</span></li>
+        <li><span class="stat__value" id="statProgress">34 %</span><span class="stat__label">visto</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ A continuación ============ -->
+  <aside class="up-next" aria-labelledby="upNextTitle">
+    <div class="up-next__head">
+      <h2 class="up-next__title" id="upNextTitle">A continuación</h2>
+      <p class="up-next__count" id="upNextCount"></p>
+    </div>
+
+    <p class="visually-hidden" id="searchStatus" role="status" aria-live="polite"></p>
+
+    <ul class="up-list" id="upNextList"></ul>
+
+    <div class="up-empty" id="upEmpty" hidden>
+      <p class="up-empty__title" id="upEmptyTitle">Sin resultados</p>
+      <p class="up-empty__hint" id="upEmptyHint">Prueba con “marea”, “costa” o “caminos”.</p>
+    </div>
+  </aside>
+
+</main>
+
+<!-- ============ Atajos de teclado ============ -->
+<div class="shortcuts" id="shortcutsOverlay" role="dialog" aria-modal="true"
+     aria-labelledby="shortcutsTitle" hidden>
+  <div class="shortcuts__panel">
+    <div class="shortcuts__head">
+      <h2 id="shortcutsTitle">Atajos de teclado</h2>
+      <button type="button" class="ctrl-btn" id="shortcutsClose" aria-label="Cerrar atajos">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"></path>
+        </svg>
+      </button>
+    </div>
+
+    <dl class="shortcuts__grid">
+      <div class="shortcuts__row"><dt><kbd>Espacio</kbd></dt><dd>Reproducir o pausar</dd></div>
+      <div class="shortcuts__row"><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Atrás o adelante 5 s</dd></div>
+      <div class="shortcuts__row"><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Subir o bajar el volumen</dd></div>
+      <div class="shortcuts__row"><dt><kbd>M</kbd></dt><dd>Silenciar</dd></div>
+      <div class="shortcuts__row"><dt><kbd>F</kbd></dt><dd>Pantalla completa</dd></div>
+      <div class="shortcuts__row"><dt><kbd>C</kbd></dt><dd>Subtítulos</dd></div>
+      <div class="shortcuts__row"><dt><kbd>/</kbd></dt><dd>Buscar en el catálogo</dd></div>
+      <div class="shortcuts__row"><dt><kbd>T</kbd></dt><dd>Cambiar de tema</dd></div>
+      <div class="shortcuts__row"><dt><kbd>?</kbd></dt><dd>Mostrar esta ayuda</dd></div>
+      <div class="shortcuts__row"><dt><kbd>Esc</kbd></dt><dd>Cerrar menús y diálogos</dd></div>
+    </dl>
+
+    <p class="shortcuts__foot">Los atajos se desactivan mientras escribes en un campo de texto.</p>
+  </div>
+</div>
+
+<noscript>
+  <p class="noscript-note">
+    Este demo necesita JavaScript para el reproductor, el buscador y el selector de temas.
+    La maqueta y los estilos se muestran igualmente.
+  </p>
+</noscript>
+
+<script src="js/data.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/player.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

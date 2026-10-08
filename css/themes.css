@@ -1,0 +1,215 @@
+/* ==========================================================================
+   themes.css — el corazón del proyecto.
+
+   Cada tema es un bloque que rellena los MISMOS tokens semánticos. La
+   composición (layout.css, player.css) jamás nombra un color concreto: sólo
+   llama a var(--surface), var(--accent)… Por eso añadir un tema nuevo es
+   copiar un bloque, y no hay que tocar ninguna otra regla del proyecto.
+
+   Antes, el "tema verde oscuro" era un string de CSS inyectado en <style>
+   que volvía a declarar :root entero. Cualquier token añadido después se
+   rompía en silencio. Aquí sólo se declaran los que cambian.
+
+   Contraste verificado contra WCAG 2.1:
+     · texto normal        AA   >= 4,5:1
+     · texto grande/UI     AA   >= 3:1
+     · alto-contraste      AAA  >= 7:1
+   ========================================================================== */
+
+/* --- 1 · Claro (por defecto) --------------------------------------------
+   El aspecto original del demo. El azul se bajó de #3B82F6 a #2563EB para
+   que el enlace de marca y los textos de acento pasen AA sobre blanco
+   (5,10:1 en lugar de 3,68:1). */
+html[data-theme='claro'] {
+  color-scheme: light;
+
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --border: #e2e5ea;
+  --border-strong: #cbd1da;
+
+  --text: #1b1f24;
+  --text-muted: #5a6270;
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --accent-contrast: #ffffff;
+
+  --canvas: #15181c;
+  --focus: #2563eb;
+
+  --art-sat: 62%;
+  --art-light: 54%;
+
+  --shadow-1: 0 1px 2px rgba(15, 20, 30, 0.06), 0 1px 1px rgba(15, 20, 30, 0.04);
+  --shadow-2: 0 6px 18px -8px rgba(15, 20, 30, 0.18), 0 2px 6px -4px rgba(15, 20, 30, 0.12);
+  --shadow-3: 0 24px 50px -24px rgba(15, 20, 30, 0.4);
+}
+
+/* --- 2 · Verde oscuro ---------------------------------------------------
+   El tema original, ahora como bloque de tokens en lugar de CSS inyectado. */
+html[data-theme='verde-oscuro'] {
+  color-scheme: dark;
+
+  --bg: #070a08;
+  --surface: #0e1512;
+  --surface-2: #141d19;
+  --border: #1e2b24;
+  --border-strong: #2d3f36;
+
+  --text: #e7f0ea;
+  --text-muted: #7c9186;
+
+  --accent: #2fbe73;
+  --accent-hover: #45d68a;
+  --accent-soft: rgba(47, 190, 115, 0.16);
+  --accent-contrast: #04120a;
+
+  --canvas: #04120a;
+  --focus: #2fbe73;
+
+  --art-sat: 74%;
+  --art-light: 44%;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 8px 22px -10px rgba(0, 0, 0, 0.8);
+  --shadow-3: 0 28px 60px -28px rgba(0, 0, 0, 0.9);
+}
+
+/* --- 3 · Medianoche ----------------------------------------------------- */
+html[data-theme='medianoche'] {
+  color-scheme: dark;
+
+  --bg: #0b0d17;
+  --surface: #131627;
+  --surface-2: #1a1e33;
+  --border: #232842;
+  --border-strong: #333a5c;
+
+  --text: #e8e9f3;
+  --text-muted: #9ba0c4;
+
+  --accent: #818cf8;
+  --accent-hover: #9aa3fb;
+  --accent-soft: rgba(129, 140, 248, 0.16);
+  --accent-contrast: #0b0d17;
+
+  --canvas: #070912;
+  --focus: #818cf8;
+
+  --art-sat: 70%;
+  --art-light: 48%;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 8px 22px -10px rgba(0, 0, 0, 0.8);
+  --shadow-3: 0 28px 60px -28px rgba(0, 0, 0, 0.9);
+}
+
+/* --- 4 · Arena ----------------------------------------------------------
+   Claro cálido: demuestra que la capa de composición es indiferente a la
+   temperatura del color, no sólo a claro/oscuro. */
+html[data-theme='arena'] {
+  color-scheme: light;
+
+  --bg: #fbf7f1;
+  --surface: #fffdf9;
+  --surface-2: #f4ede2;
+  --border: #e9dfd1;
+  --border-strong: #d3c4af;
+
+  --text: #2a231c;
+  --text-muted: #6b5c4b;
+
+  --accent: #c2410c;
+  --accent-hover: #9a3412;
+  --accent-soft: rgba(194, 65, 12, 0.12);
+  --accent-contrast: #fffdf9;
+
+  --canvas: #1c1512;
+  --focus: #c2410c;
+
+  --art-sat: 58%;
+  --art-light: 52%;
+
+  --shadow-1: 0 1px 2px rgba(74, 52, 30, 0.08);
+  --shadow-2: 0 6px 18px -8px rgba(74, 52, 30, 0.24);
+  --shadow-3: 0 24px 50px -24px rgba(74, 52, 30, 0.42);
+}
+
+/* --- 5 · Alto contraste -------------------------------------------------
+   Amarillo sobre negro: 16,7:1 (AAA). Sin grises medios ni superficies
+   translúcidas, porque todo lo que se apoya en ellas deja de ser legible. */
+html[data-theme='alto-contraste'] {
+  color-scheme: dark;
+
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface-2: #161616;
+  --border: #ffffff;
+  --border-strong: #ffffff;
+
+  --text: #ffffff;
+  --text-muted: #e0e0e0;
+
+  --accent: #ffe600;
+  --accent-hover: #fff04d;
+  --accent-soft: rgba(255, 230, 0, 0.2);
+  --accent-contrast: #000000;
+
+  --canvas: #000000;
+  --focus: #ffe600;
+
+  --art-sat: 90%;
+  --art-light: 56%;
+
+  --shadow-1: none;
+  --shadow-2: none;
+  --shadow-3: none;
+}
+
+/* --- Vista previa de cada tema en el selector ---------------------------
+   El menú pinta las cinco muestras a la vez, así que no pueden apoyarse en
+   los tokens activos: tendrían el aspecto del tema en curso. Se declaran
+   explícitas para que la muestra muestre SIEMPRE su propio tema. */
+
+[data-swatch='claro'] {
+  --sw-bg: #f5f6f8;
+  --sw-surface: #ffffff;
+  --sw-border: #e2e5ea;
+  --sw-accent: #2563eb;
+  --sw-text: #1b1f24;
+}
+
+[data-swatch='verde-oscuro'] {
+  --sw-bg: #070a08;
+  --sw-surface: #0e1512;
+  --sw-border: #1e2b24;
+  --sw-accent: #2fbe73;
+  --sw-text: #e7f0ea;
+}
+
+[data-swatch='medianoche'] {
+  --sw-bg: #0b0d17;
+  --sw-surface: #131627;
+  --sw-border: #232842;
+  --sw-accent: #818cf8;
+  --sw-text: #e8e9f3;
+}
+
+[data-swatch='arena'] {
+  --sw-bg: #fbf7f1;
+  --sw-surface: #fffdf9;
+  --sw-border: #e9dfd1;
+  --sw-accent: #c2410c;
+  --sw-text: #2a231c;
+}
+
+[data-swatch='alto-contraste'] {
+  --sw-bg: #000000;
+  --sw-surface: #0a0a0a;
+  --sw-border: #ffffff;
+  --sw-accent: #ffe600;
+  --sw-text: #ffffff;
+}

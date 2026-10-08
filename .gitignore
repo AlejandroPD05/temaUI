@@ -1,0 +1,22 @@
+# Este proyecto no tiene dependencias ni build: sólo HTML, CSS y JS.
+# El .gitignore es por si algún día se conecta un linter o un servidor de
+# pruebas local, y para no arrastrar artefactos del sistema.
+
+node_modules/
+npm-debug.log*
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Salidas de pruebas locales (el arnés vive fuera del repo)
+test-results/
+playwright-report/
+*.local.html
