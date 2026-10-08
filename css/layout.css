@@ -275,11 +275,6 @@ body,
    Es el motivo de nombre del proyecto: el menú tiene que verse como una
    lista de muestras, no como un dropdown genérico. */
 
-.theme-picker {
-  /* Imprescindible: es el posicionado del que cuelga .theme-menu. */
-  position: relative;
-}
-
 .theme-btn {
   display: inline-flex;
   align-items: center;
@@ -347,10 +342,20 @@ body,
 
 /* --- Panel del selector -------------------------------------------------- */
 
+/* El menú se ancla a `.platform-bar`, NO al botón que lo abre.
+   `.theme-picker` era el posicionado, y con `right: 0` sobre el botón el
+   panel medía lo que medía y salía por la izquierda: a 320 px se desbordaba
+   32 px, porque a la derecha del botón siguen el botón de atajos y el avatar.
+   La barra llega hasta el borde y su `padding-inline` es exactamente el
+   margen que queremos (coincide con `right` en cada punto de corte).
+   Para que la barra sea el contenedor, `.theme-picker` es `position: static`
+   y `.platform-bar`, al ser `sticky`, es el ancestro posicionado más próximo. */
 .theme-menu {
   position: absolute;
-  top: calc(100% + var(--sp-2));
-  right: 0;
+  /* 100% = alto de la barra, no del botón: así el panel siempre arranca
+     justo debajo de la cabecera, con la misma separación en todos los temas. */
+  top: calc(100% + var(--sp-1));
+  right: var(--sp-5); /* == padding-inline de .platform-bar */
   z-index: 60;
   width: 300px; /* ancho fijo: la lista no debe reordenarse al cambiar de tema */
   max-width: calc(100vw - var(--sp-6)); /* sin esto desborda en móvil */
@@ -745,6 +750,8 @@ body.is-locked {
   .theme-menu {
     /* Sin este ancho, a 360 px el panel saldría por la izquierda. */
     width: min(300px, calc(100vw - var(--sp-6)));
+    /* La barra estrecha su padding en este corte: el menú le sigue. */
+    right: var(--sp-3);
   }
 
   .player-layout {
@@ -785,6 +792,8 @@ body.is-locked {
 
   .theme-menu {
     padding: var(--sp-2);
+    /* Último punto de corte: la barra queda en sp-2 de gutter. */
+    right: var(--sp-2);
   }
 
   .player-layout {

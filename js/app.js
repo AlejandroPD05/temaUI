@@ -264,11 +264,17 @@
 
     var target = ui.returnFocus;
     ui.returnFocus = null;
-    if (target && typeof target.focus === 'function') {
+
+    // Si al abrir no había foco real (activeElement es <body>), devolvérselo a
+    // <body> no lleva a ninguna parte: <body> no es enfocable y el cursor
+    // queda perdido. Se comprueba que el foco haya APLICADO antes de darlo
+    // por bueno, y si no, se salta al botón que abrió el diálogo.
+    var moved = false;
+    if (target && target !== document.body && typeof target.focus === 'function') {
       target.focus();
-    } else if (el.shortcutsBtn) {
-      el.shortcutsBtn.focus();
+      moved = document.activeElement === target;
     }
+    if (!moved && el.shortcutsBtn) el.shortcutsBtn.focus();
   }
 
   /**

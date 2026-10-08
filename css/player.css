@@ -159,13 +159,19 @@
   left: var(--sp-5);
   bottom: var(--sp-5);
   margin: 0;
+  padding: 4px 10px;
+  border-radius: var(--r-sm);
+  /* Pastilla oscura: el código debe leerse sobre CUALQUIER carátula, y el
+     matiz cambia de episodio en episodio. Fondo fijo, no token, por el mismo
+     motivo que el botón de reproducción. */
+  background: rgba(6, 9, 12, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   font-family: var(--font-mono);
   font-size: var(--fs-xl);
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: var(--text);
-  opacity: 0.72;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+  color: #fff;
   pointer-events: none;
 }
 
@@ -180,9 +186,13 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--text) 32%, transparent);
-  background: color-mix(in srgb, var(--text) 18%, transparent);
-  color: var(--text);
+  /* Colores fijos, no tokens: este botón vive SIEMPRE sobre --canvas, que es
+     oscuro en los cinco temas. Con --text quedaba invisible en los temas
+     claros (texto negro sobre fondo negro). Mismo criterio que las insignias
+     y la caja de subtítulos. */
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  background: rgba(6, 9, 12, 0.44);
+  color: #fff;
   backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
   cursor: pointer;
@@ -192,7 +202,7 @@
 
 .play-overlay:hover {
   transform: scale(1.06);
-  background: color-mix(in srgb, var(--text) 30%, transparent);
+  background: rgba(6, 9, 12, 0.66);
 }
 
 .play-overlay:active {
@@ -852,6 +862,10 @@
 }
 
 .up-item__info {
+  /* Los dos textos van apilados: sin flex son <span> y acababan pegados
+     ("Rutas del SurT2 E4") sobre una sola línea. */
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
 
