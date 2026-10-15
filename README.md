@@ -4,6 +4,8 @@ Demo de interfaz de reproductor cuyo motivo de existencia es el **cambio de
 tema**: cinco paletas completas, selector visual, persistencia y transición
 animada. Todo sin dependencias, sin build y sin framework.
 
+**▶ Ver en vivo:** https://alejandropd05.github.io/temaUI/
+
 Se abre con doble clic sobre `index.html`.
 
 ![Portada](assets/og-cover.png)
@@ -220,8 +222,10 @@ referencia      167 fps   (transiciones de color desactivadas del todo)
 
 ## Pruebas
 
-El arnés de Playwright vive fuera del repositorio (no es dependencia del
-proyecto) y cubre **132 aserciones**:
+El proyecto se validó con un arnés de Playwright propio que cubre **132
+aserciones**. Ese arnés **no está incluido en este repositorio** (no es
+dependencia del proyecto), así que los comandos de abajo sólo funcionan
+donde esté presente:
 
 | Suite | Qué comprueba |
 |---|---|
@@ -238,7 +242,7 @@ proyecto) y cubre **132 aserciones**:
 | `file` | apertura por `file://` completa |
 
 ```bash
-node qa.js           # todo
+node qa.js           # todo (requiere el arnés, fuera del repo)
 node qa.js temas     # una suite
 ```
 

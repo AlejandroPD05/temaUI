@@ -181,8 +181,8 @@
     }
 
     // Al reordenar/filtrar puede salir a la luz la fila activa: hay que
-    // volver a poner el marcador accesible.
-    markCurrentRow();
+    // volver a poner el marcador accesible (con el id actual, si lo hay).
+    markCurrentRow(ui.markedId);
   }
 
   /**
