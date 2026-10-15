@@ -36,7 +36,8 @@ python -m http.server 8766
 ```
 
 No hay `npm install`, no hay `npm run build`. Los ficheros que hay en el
-repositorio son los que se sirven.
+repositorio son los que se sirven. `npm install` solo es necesario si quieres
+ejecutar el linter (`npm run lint`), que además corre en CI con cada push.
 
 ### Atajos de teclado
 

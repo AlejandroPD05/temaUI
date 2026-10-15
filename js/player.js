@@ -692,7 +692,7 @@
     var result = null;
     try {
       result = fullscreenElement() ? exitFullscreen() : requestFullscreen(frame);
-    } catch (err) {
+    } catch {
       // NotAllowedError / SecurityError (requisito de gesto del usuario,
       // iframe sin permisos…): no cambiamos NADA; la interfaz queda como
       // estaba y sin estado inconsistente.

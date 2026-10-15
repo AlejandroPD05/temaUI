@@ -76,7 +76,7 @@
   function storageGet(key) {
     try {
       return global.localStorage.getItem(key);
-    } catch (err) {
+    } catch {
       return null;
     }
   }
@@ -84,7 +84,7 @@
   function storageSet(key, value) {
     try {
       global.localStorage.setItem(key, value);
-    } catch (err) {
+    } catch {
       /* Sin almacenamiento sólo perdemos la recordatoriedad, no la app. */
     }
   }
@@ -205,7 +205,7 @@
       // quedarse bloqueada —el siguiente cambio se vería instantáneo incluso
       // donde tocaría animar—. Diez veces la duración declarada en CSS.
       global.setTimeout(unlock, 2600);
-    } catch (err) {
+    } catch {
       unlock();
       apply();
     }
@@ -225,7 +225,7 @@
     try {
       var bg = global.getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
       if (bg) meta.setAttribute('content', bg);
-    } catch (err) {
+    } catch {
       /* Estilo no calculable aún: se deja el content anterior. */
     }
   }
