@@ -6,6 +6,9 @@ node_modules/
 npm-debug.log*
 *.log
 
+# Entorno: por si algún día se añade configuración local con secretos
+.env*
+
 # Sistema
 .DS_Store
 Thumbs.db
